@@ -113,8 +113,12 @@ Builds status reports:
 
 1. Verify macOS + Node 20+ + `agent` CLI
 2. `rsync` repo to `~/.local/share/cursor-workers/app`
-3. `npm link` the CLI
-4. Run `cursor-workers setup` if no config exists
+3. Pin the Node binary to `~/.local/share/cursor-workers/node-path`
+4. Install `~/.local/bin/cursor-workers` wrapper (exec pinned Node + app entrypoint)
+5. Remove stale `npm link` shims from nvm
+6. Run `cursor-workers setup` if no config exists
+
+The wrapper insulates the CLI from nvm default version changes. launchd invokes the same wrapper path.
 
 Runtime state lives outside the install dir under `~/.config/cursor-workers/` and `~/.local/share/cursor-workers/`.
 

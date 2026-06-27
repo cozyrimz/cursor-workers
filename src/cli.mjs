@@ -12,6 +12,7 @@ import {
   ensureDirs,
   hasApiKey,
   loadConfig,
+  resolveCliPath,
 } from "./config.mjs";
 import {
   formatStatusJson,
@@ -48,14 +49,6 @@ Docs:   https://cursor.com/docs/cloud-agent/my-machines
 `);
 }
 
-function resolveCliPath() {
-  const linked = spawnSync("which", ["cursor-workers"], { encoding: "utf8" });
-  if (linked.status === 0 && linked.stdout.trim()) {
-    return linked.stdout.trim();
-  }
-  return path.join(ROOT, "bin", "cursor-workers.mjs");
-}
-
 function buildLaunchAgentPlist(cliPath) {
   const home = os.homedir();
   const logDir = path.join(DATA_DIR, "launchd");
@@ -85,7 +78,7 @@ function buildLaunchAgentPlist(cliPath) {
   <array>
     <string>/bin/zsh</string>
     <string>-lc</string>
-    <string>set -a; source ${ENV_PATH}; set +a; exec ${process.execPath} ${cliPath} supervise</string>
+    <string>set -a; source ${ENV_PATH}; set +a; exec ${cliPath} supervise</string>
   </array>
   <key>RunAtLoad</key>
   <true/>
@@ -113,6 +106,9 @@ function installLaunchAgent() {
   }
 
   const cliPath = resolveCliPath();
+  if (!fs.existsSync(cliPath)) {
+    throw new Error(`CLI not found at ${cliPath}. Re-run ./install.sh`);
+  }
   const plist = buildLaunchAgentPlist(cliPath);
   fs.mkdirSync(path.dirname(LAUNCH_AGENT_PATH), { recursive: true });
   fs.writeFileSync(LAUNCH_AGENT_PATH, plist);

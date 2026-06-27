@@ -6,6 +6,9 @@ export const CONFIG_DIR = path.join(os.homedir(), ".config", "cursor-workers");
 export const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 export const ENV_PATH = path.join(CONFIG_DIR, "env");
 export const DATA_DIR = path.join(os.homedir(), ".local", "share", "cursor-workers");
+export const INSTALL_DIR = path.join(DATA_DIR, "app");
+export const NODE_PATH_FILE = path.join(DATA_DIR, "node-path");
+export const WRAPPER_PATH = path.join(os.homedir(), ".local", "bin", "cursor-workers");
 export const SUPERVISOR_PID_PATH = path.join(DATA_DIR, "supervisor.pid");
 export const LAUNCH_AGENT_LABEL = "com.cursor.workers";
 export const LAUNCH_AGENT_PATH = path.join(
@@ -14,6 +17,18 @@ export const LAUNCH_AGENT_PATH = path.join(
   "LaunchAgents",
   `${LAUNCH_AGENT_LABEL}.plist`,
 );
+
+export function readPinnedNode() {
+  if (!fs.existsSync(NODE_PATH_FILE)) return null;
+  const nodeBin = fs.readFileSync(NODE_PATH_FILE, "utf8").trim();
+  if (!nodeBin || !fs.existsSync(nodeBin)) return null;
+  return nodeBin;
+}
+
+export function resolveCliPath() {
+  if (fs.existsSync(WRAPPER_PATH)) return WRAPPER_PATH;
+  return path.join(INSTALL_DIR, "bin", "cursor-workers.mjs");
+}
 
 export function expandHome(value) {
   if (typeof value !== "string") return value;

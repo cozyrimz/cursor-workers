@@ -4,9 +4,35 @@ Keep [Cursor Cloud Agent workers](https://cursor.com/docs/cloud-agent/my-machine
 
 > Unofficial community tool. Not affiliated with Cursor.
 
+## Prerequisites
+
+Install these before `./install.sh`:
+
+**Node.js 20+**
+
+```bash
+# Option A: nvm (recommended if you switch Node versions)
+nvm install 20
+nvm use 20
+
+# Option B: direct install
+# https://nodejs.org
+```
+
+**Cursor agent CLI**
+
+```bash
+curl https://cursor.com/install -fsS | bash
+agent --version
+```
+
+`install.sh` will install the agent CLI automatically if it's missing.
+
 ## Quick start
 
-**Requires:** macOS, Node.js 20+, [Cursor agent CLI](https://cursor.com/install) (`agent`).
+**Requires:** macOS and the prerequisites above.
+
+`install.sh` must run once with Node 20+ on PATH. It pins that Node binary and installs a wrapper at `~/.local/bin/cursor-workers`, so later nvm version switches won't break the CLI.
 
 ```bash
 git clone https://github.com/cozyrimz/cursor-workers.git
@@ -34,8 +60,7 @@ cursor-workers restart
 
 ```bash
 cursor-workers uninstall
-npm unlink -g cursor-workers
-rm -rf ~/.local/share/cursor-workers/app
+rm -rf ~/.local/share/cursor-workers
 ```
 
 ## Docs

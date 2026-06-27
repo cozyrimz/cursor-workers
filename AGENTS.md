@@ -36,7 +36,7 @@ launchd (Login) → cursor-workers supervise
 - **macOS only** — uses launchd LaunchAgents
 - **API key auth for daemon mode** — browser login (`agent login`) does not work headless at login
 - **Config format:** `~/.config/cursor-workers/config.json` with a `workspaces` array only — **no legacy `workers.json` support**
-- **Install target:** `install.sh` rsyncs to `~/.local/share/cursor-workers/app` and `npm link`s the CLI
+- **Install target:** `install.sh` rsyncs to `~/.local/share/cursor-workers/app` and installs a bash wrapper at `~/.local/bin/cursor-workers` that uses a pinned Node path (`~/.local/share/cursor-workers/node-path`)
 
 ## Source map
 

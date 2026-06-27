@@ -14,17 +14,11 @@ Thanks for helping improve cursor-workers. This is a small Node.js CLI with no b
 ```bash
 git clone https://github.com/cozyrimz/cursor-workers.git
 cd cursor-workers
-npm link                     # symlink cursor-workers into PATH
+./install.sh                 # pins Node 20+, installs ~/.local/bin wrapper
 cursor-workers setup         # local config + API key (optional for code-only changes)
 ```
 
-To test against the installed copy (mirrors what `install.sh` does):
-
-```bash
-./install.sh
-```
-
-The install script rsyncs the repo to `~/.local/share/cursor-workers/app` and links the global binary there.
+Use `./install.sh` for development — it rsyncs to `~/.local/share/cursor-workers/app` and installs the CLI wrapper. Avoid `npm link` (it ties the command to whichever Node version is active).
 
 ## Project layout
 
