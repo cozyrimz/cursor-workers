@@ -14,9 +14,9 @@ Requires Node.js 20+ (same as the app).
 
 | Area | File | Focus |
 |------|------|-------|
-| Config normalization | `test/config.test.mjs` | `slugify`, `expandHome`, `normalizeConfig`, `loadConfig`, env helpers, pinned Node |
+| Config normalization | `test/config.test.mjs` | `slugify`, `expandHome`, `normalizeConfig`, `loadConfig`, env helpers (`applyApiKeyEnv`), port assignment, pinned Node |
 | Worker CLI args | `test/worker-process.test.mjs` | `buildWorkerArgs`, PID helpers, `isRunning`, `stopWorker` edge cases |
-| Supervisor state | `test/supervisor.test.mjs` | Supervisor PID file read/write/clear |
+| Supervisor state | `test/supervisor.test.mjs` | Supervisor PID file, staggered worker starts |
 | Status output | `test/status.test.mjs` | Prometheus parsing, status table/JSON formatting |
 | launchd plist | `test/launchd.test.mjs` | LaunchAgent XML structure and env sourcing |
 | Workspace CRUD | `test/setup.test.mjs` | `addWorkspace`, `removeWorkspace` |
@@ -29,7 +29,8 @@ Tests use temporary directories — they do not touch `~/.config/cursor-workers`
 1. Put new test files in `test/` as `*.test.mjs`
 2. Reuse helpers from `test/lib/helpers.mjs` for temp dirs and sample config
 3. Prefer testing pure functions and file-based logic over live `agent` or launchd calls
-4. Run `npm test` before opening a PR
+4. **Regression tests:** every bug fix should add a test that fails without the fix (see `.cursor/rules/regression-tests.mdc`)
+5. Run `npm test` before opening a PR
 
 ### Patterns
 

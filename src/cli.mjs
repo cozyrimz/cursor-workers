@@ -35,13 +35,17 @@ Usage:
   cursor-workers install              Install launchd agent (auto-start at login)
   cursor-workers uninstall            Remove launchd agent
   cursor-workers status [--json]      Show worker status
-  cursor-workers workspace list       List configured workspace paths
-  cursor-workers workspace add <path> Add a workspace
-  cursor-workers workspace remove <id> Remove a workspace
+  cursor-workers workspace list       List configured workspaces
+  cursor-workers workspace add <path> [--name <cloud-name>]
+  cursor-workers workspace remove <local-id>
   cursor-workers auth check           Verify API key + worker visibility
-  cursor-workers logs <id>            Tail worker log
-  cursor-workers debug [id]           Run agent worker preflight
+  cursor-workers logs <local-id>      Tail worker log
+  cursor-workers debug [local-id]     Run agent worker preflight
   cursor-workers start|stop|restart   Control workers manually
+
+Workspace identifiers:
+  local id     Slug from the repo path. Use for logs, debug, remove.
+  cloud name   Label in Cursor dashboard. Use as worker=<cloud-name> in Slack/GitHub.
 
 Config: ${CONFIG_PATH}
 Env:    ${ENV_PATH}
@@ -225,7 +229,7 @@ async function main() {
       if (subcommand === "add") {
         const rawPath = rest[0];
         if (!rawPath) {
-          console.error("Usage: cursor-workers workspace add <path> [--name <name>]");
+          console.error("Usage: cursor-workers workspace add <path> [--name <cloud-name>]");
           process.exit(1);
         }
         const nameFlag = rest.indexOf("--name");
@@ -236,7 +240,7 @@ async function main() {
       if (subcommand === "remove") {
         const id = rest[0];
         if (!id) {
-          console.error("Usage: cursor-workers workspace remove <id-or-path>");
+          console.error("Usage: cursor-workers workspace remove <local-id>");
           process.exit(1);
         }
         removeWorkspace(id);
@@ -259,11 +263,11 @@ async function main() {
       const config = loadConfig();
       const workerId = subcommand;
       if (!workerId) {
-        console.error("Usage: cursor-workers logs <workspace-id>");
+        console.error("Usage: cursor-workers logs <local-id>");
         process.exit(1);
       }
       if (!config.workers.find((item) => item.id === workerId)) {
-        console.error(`Unknown workspace: ${workerId}`);
+        console.error(`Unknown local id: ${workerId}`);
         process.exit(1);
       }
       tailLog(path.join(config.logDir, `${workerId}.log`), Number(rest[0]) || 50);
@@ -276,7 +280,7 @@ async function main() {
         ? config.workers.find((item) => item.id === subcommand)
         : config.workers[0];
       if (!worker) {
-        console.error(subcommand ? `Unknown workspace: ${subcommand}` : "No workspaces configured.");
+        console.error(subcommand ? `Unknown local id: ${subcommand}` : "No workspaces configured.");
         process.exit(1);
       }
       console.log(JSON.stringify(runWorkerDebug(config, worker), null, 2));

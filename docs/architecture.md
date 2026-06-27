@@ -44,14 +44,7 @@ Command router. Handles user-facing commands and launchd plist generation/instal
 - `start` / `stop` / `restart` — manual control without launchd
 - `status`, `logs`, `debug`, `auth check` — observability
 
-The launchd plist runs:
-
-```bash
-set -a; source ~/.config/cursor-workers/env; set +a
-exec node <cli-path> supervise
-```
-
-This ensures `CURSOR_API_KEY` is available headlessly at login.
+The launchd plist runs `<cli-path> supervise` directly (not via a shell wrapper) so macOS Login Items shows **cursor-workers** instead of **zsh**. `CURSOR_API_KEY` is copied from `~/.config/cursor-workers/env` into the plist `EnvironmentVariables` at install time.
 
 ### `src/config.mjs`
 

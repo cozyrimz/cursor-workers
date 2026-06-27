@@ -57,9 +57,10 @@ launchd (Login) → cursor-workers supervise
 
 - `cursor-workers start` detaches workers (`child.unref()`) so the CLI exits immediately
 - Supervisor polls every 30s; 5s delay after a worker crash before restart
+- `start` and supervisor boot stagger worker spawns by 2s to avoid concurrent `agent worker` auth races
 - `managementPort` per workspace enables local Prometheus metrics at `/metrics`
 - Fleet summary in `status` only works with service account keys (Enterprise pool)
-- launchd plist sources `~/.config/cursor-workers/env` before running `cursor-workers supervise`
+- launchd plist runs `cursor-workers supervise` directly (shows as **cursor-workers** in macOS Login Items, not `zsh`); `CURSOR_API_KEY` is injected via plist `EnvironmentVariables`
 
 ## Working in this repo
 
@@ -67,4 +68,5 @@ launchd (Login) → cursor-workers supervise
 2. Match existing patterns — plain Node ESM, minimal dependencies, no transpiler
 3. Keep user docs in `README.md` short; put detail in `docs/`
 4. **Add or update unit tests for behavior changes; run `npm test`**
-5. Do not reintroduce legacy config formats or browser-login-as-daemon assumptions
+5. **Bug fixes from manual/dogfood testing need a regression test** — see `.cursor/rules/regression-tests.mdc`
+6. Do not reintroduce legacy config formats or browser-login-as-daemon assumptions
