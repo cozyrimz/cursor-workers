@@ -1,0 +1,27 @@
+{
+  "name": "cursor-workers",
+  "version": "1.0.0",
+  "description": "macOS daemon + CLI to keep Cursor cloud agent workers running",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "cursor-workers": "./bin/cursor-workers.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "link": "npm link"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cozyrimz/cursor-workers.git"
+  },
+  "keywords": [
+    "cursor",
+    "agents",
+    "macos",
+    "launchd",
+    "daemon"
+  ]
+}

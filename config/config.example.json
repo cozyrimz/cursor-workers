@@ -1,0 +1,16 @@
+{
+  "agentBin": "agent",
+  "defaults": {
+    "pool": false,
+    "poolName": "default",
+    "idleReleaseTimeout": 0,
+    "managementPortBase": 18080
+  },
+  "workspaces": [
+    {
+      "path": "~/projects/example-repo",
+      "name": "example-mac",
+      "enabled": true
+    }
+  ]
+}
