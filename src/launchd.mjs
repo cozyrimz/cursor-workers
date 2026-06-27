@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { ENV_PATH, LAUNCH_AGENT_LABEL } from "./config.mjs";
+import { ENV_PATH, LAUNCH_AGENT_LABEL, loadEnvFile } from "./config.mjs";
 
 export function buildLaunchAgentPlist(cliPath, { home = os.homedir(), envPath = ENV_PATH } = {}) {
   const logDir = path.join(home, ".local", "share", "cursor-workers", "launchd");
@@ -20,6 +20,14 @@ export function buildLaunchAgentPlist(cliPath, { home = os.homedir(), envPath = 
     );
   }
 
+  const envFile = loadEnvFile(envPath);
+  const apiKey = envFile.CURSOR_API_KEY ?? "";
+  if (!apiKey) {
+    throw new Error(
+      `Missing CURSOR_API_KEY in ${envPath}. Run: cursor-workers setup (API key required for auto-start).`,
+    );
+  }
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -28,9 +36,8 @@ export function buildLaunchAgentPlist(cliPath, { home = os.homedir(), envPath = 
   <string>${LAUNCH_AGENT_LABEL}</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/bin/zsh</string>
-    <string>-lc</string>
-    <string>set -a; source ${envPath}; set +a; exec ${cliPath} supervise</string>
+    <string>${cliPath}</string>
+    <string>supervise</string>
   </array>
   <key>RunAtLoad</key>
   <true/>
@@ -46,6 +53,8 @@ export function buildLaunchAgentPlist(cliPath, { home = os.homedir(), envPath = 
     <string>${pathEnv}</string>
     <key>HOME</key>
     <string>${home}</string>
+    <key>CURSOR_API_KEY</key>
+    <string>${apiKey}</string>
   </dict>
 </dict>
 </plist>

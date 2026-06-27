@@ -1,0 +1,33 @@
+---
+description: Add regression tests when fixing bugs found in manual or dogfood testing
+alwaysApply: true
+---
+
+# Regression tests for bugs
+
+When you fix a bug found during manual testing, dogfooding, or user reports:
+
+1. **Add or update a unit test** in `test/` that would have caught the bug before the fix.
+2. **Prefer pure functions** — test config normalization, env helpers, scheduling, formatting, not live `agent` or launchd.
+3. **Run `npm test`** before finishing; all tests must pass.
+4. **Update `docs/tests.md`** if you add a new test file or a new coverage area.
+
+## What to test
+
+| Bug type | Where to test |
+|----------|---------------|
+| Config / ports / env | `test/config.test.mjs` |
+| Worker args / spawn env | `test/worker-process.test.mjs` or `test/config.test.mjs` |
+| Start/stagger/restart | `test/supervisor.test.mjs` |
+| Status / auth probe output | `test/status.test.mjs` |
+| Workspace CRUD | `test/setup.test.mjs` |
+
+## Example
+
+Bug: API key from `~/.config/cursor-workers/env` not passed to `agent worker` spawn.
+
+Fix: `applyApiKeyEnv()` in `startWorker`.
+
+Test: assert `applyApiKeyEnv({}, {}, envPath)` sets `CURSOR_API_KEY` from the env file.
+
+Do not merge behavior fixes without a matching regression test unless the behavior is impossible to unit-test (document why in the PR).

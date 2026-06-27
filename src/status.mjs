@@ -133,7 +133,8 @@ export function formatStatusTable(report) {
         : "starting"
       : "stopped";
 
-    lines.push(`${worker.id} (${worker.name})`);
+    lines.push(`local id:    ${worker.id}`);
+    lines.push(`cloud name:  ${worker.name}`);
     lines.push(`  state:     ${state}`);
     lines.push(`  pid:       ${worker.pid ?? "-"}`);
     lines.push(`  workspace: ${worker.workerDir}`);

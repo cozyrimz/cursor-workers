@@ -76,7 +76,7 @@ export async function runSetup({ nonInteractive = false } = {}) {
 
         const expanded = validatePath(rawPath);
         const baseName = path.basename(expanded);
-        const name = await prompt(rl, "Worker name for Cursor dashboard", {
+        const name = await prompt(rl, "Cloud worker name (worker= in Slack/GitHub)", {
           defaultValue: `${defaultMachineName()}-${baseName}`,
         });
 
@@ -130,8 +130,11 @@ export function addWorkspace(rawPath, { name, configPath = CONFIG_PATH } = {}) {
     enabled: true,
   });
 
+  const cloudName = name ?? `${defaultMachineName()}-${path.basename(expanded)}`;
   writeConfig({ ...raw, workspaces }, configPath);
   console.log(`Added workspace: ${expanded}`);
+  console.log(`  local id:   ${id}`);
+  console.log(`  cloud name: ${cloudName}`);
 }
 
 export function removeWorkspace(idOrPath, { configPath = CONFIG_PATH } = {}) {
@@ -161,11 +164,14 @@ export function listWorkspaces() {
 
   console.log("\nWorkspaces");
   console.log("=".repeat(60));
+  console.log("local id = logs/debug/remove   |   cloud name = Cursor dashboard, worker=<name>");
+  console.log("");
+
   for (const worker of config.workers) {
-    console.log(worker.id);
-    console.log(`  path:    ${worker.workerDir}`);
-    console.log(`  name:    ${worker.name}`);
-    console.log(`  port:    ${worker.managementPort ?? "-"}`);
+    console.log(`local id:    ${worker.id}`);
+    console.log(`cloud name:  ${worker.name}`);
+    console.log(`  path:      ${worker.workerDir}`);
+    console.log(`  port:      ${worker.managementPort ?? "-"}`);
     console.log("");
   }
 }

@@ -5,6 +5,7 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import {
   expandHome,
+  applyApiKeyEnv,
   assignManagementPorts,
   hasApiKey,
   loadConfig,
@@ -264,6 +265,29 @@ describe("config.mjs", () => {
       process.env.CURSOR_API_KEY = "from-env";
       try {
         assert.equal(hasApiKey("/tmp/no-env-file"), true);
+      } finally {
+        if (previous === undefined) delete process.env.CURSOR_API_KEY;
+        else process.env.CURSOR_API_KEY = previous;
+      }
+    });
+
+    it("applyApiKeyEnv injects CURSOR_API_KEY for worker spawn", () => {
+      const root = createTempDir();
+      try {
+        const envPath = path.join(root, "env");
+        writeEnvFile("spawn-key", envPath);
+
+        const env = applyApiKeyEnv({ apiKeyEnv: "CURSOR_API_KEY" }, {}, envPath);
+        assert.equal(env.CURSOR_API_KEY, "spawn-key");
+      } finally {
+        removeTempDir(root);
+      }
+
+      const previous = process.env.CURSOR_API_KEY;
+      process.env.CURSOR_API_KEY = "env-key";
+      try {
+        const env = applyApiKeyEnv({ apiKeyEnv: "CURSOR_API_KEY" }, { ...process.env }, "/tmp/missing-env");
+        assert.equal(env.CURSOR_API_KEY, "env-key");
       } finally {
         if (previous === undefined) delete process.env.CURSOR_API_KEY;
         else process.env.CURSOR_API_KEY = previous;

@@ -5,6 +5,26 @@ import { isRunning, readPid, startWorker, stopWorker } from "./worker-process.mj
 
 const RESTART_DELAY_MS = 5000;
 
+/** Delay between worker spawns — concurrent `agent worker start` races on macOS keychain auth. */
+export const WORKER_START_STAGGER_MS = 2000;
+
+export function scheduleWorkerStarts(workers, startFn, { staggerMs = WORKER_START_STAGGER_MS } = {}) {
+  let scheduled = 0;
+  let delay = 0;
+
+  for (const worker of workers) {
+    if (delay === 0) {
+      startFn(worker);
+    } else {
+      setTimeout(() => startFn(worker), delay);
+    }
+    scheduled += 1;
+    delay += staggerMs;
+  }
+
+  return scheduled;
+}
+
 export function readSupervisorPid(pidPath = SUPERVISOR_PID_PATH) {
   if (!fs.existsSync(pidPath)) return null;
   const value = Number.parseInt(fs.readFileSync(pidPath, "utf8").trim(), 10);
@@ -70,9 +90,11 @@ export function supervise(config) {
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
 
-  for (const worker of config.workers) {
-    ensureWorkerRunning(config, worker);
-  }
+  const workersToStart = config.workers.filter((worker) => {
+    const pid = readPid(config.stateDir, worker.id);
+    return !isRunning(pid);
+  });
+  scheduleWorkerStarts(workersToStart, (worker) => ensureWorkerRunning(config, worker));
 
   setInterval(() => {
     for (const worker of config.workers) {
@@ -97,12 +119,12 @@ export function stopAll(config) {
 }
 
 export function startAll(config) {
-  let started = 0;
-  for (const worker of config.workers) {
+  const workersToStart = config.workers.filter((worker) => {
     const pid = readPid(config.stateDir, worker.id);
-    if (isRunning(pid)) continue;
+    return !isRunning(pid);
+  });
+
+  return scheduleWorkerStarts(workersToStart, (worker) => {
     startWorker(config, worker, { detach: true });
-    started += 1;
-  }
-  return started;
+  });
 }

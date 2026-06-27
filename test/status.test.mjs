@@ -74,7 +74,8 @@ cursor_self_hosted_worker_last_activity_unix_seconds 1710000000.0
       };
 
       const table = formatStatusTable(report);
-      assert.match(table, /my-app \(mac-my-app\)/);
+      assert.match(table, /local id:\s+my-app/);
+      assert.match(table, /cloud name:\s+mac-my-app/);
       assert.match(table, /state:\s+idle/);
       assert.match(table, /pool:\s+my-machine/);
       assert.match(table, /metrics:\s+http:\/\/127\.0\.0\.1:18081\/metrics/);

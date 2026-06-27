@@ -8,7 +8,7 @@ import { createTempDir, removeTempDir } from "./lib/helpers.mjs";
 
 describe("launchd.mjs", () => {
   describe("buildLaunchAgentPlist", () => {
-    it("builds a launchd plist that sources env and execs the wrapper", () => {
+    it("builds a launchd plist that execs the CLI directly with api key env", () => {
       const root = createTempDir();
       try {
         const home = path.join(root, "home");
@@ -22,9 +22,26 @@ describe("launchd.mjs", () => {
         assert.match(plist, new RegExp(`<string>${LAUNCH_AGENT_LABEL}</string>`));
         assert.match(plist, /RunAtLoad/);
         assert.match(plist, /KeepAlive/);
-        assert.match(plist, /source .+env/);
-        assert.match(plist, new RegExp(`exec ${wrapper} supervise`));
+        assert.match(plist, new RegExp(`<string>${wrapper}</string>`));
+        assert.match(plist, /<string>supervise<\/string>/);
+        assert.match(plist, /<key>CURSOR_API_KEY<\/key>\s*\n\s*<string>test<\/string>/);
         assert.match(plist, new RegExp(`<string>${home}</string>`));
+        assert.doesNotMatch(plist, /\/bin\/zsh/);
+      } finally {
+        removeTempDir(root);
+      }
+    });
+
+    it("throws when env file has no api key", () => {
+      const root = createTempDir();
+      try {
+        const envPath = path.join(root, "env");
+        fs.writeFileSync(envPath, "# empty\n");
+
+        assert.throws(
+          () => buildLaunchAgentPlist("/tmp/cursor-workers", { envPath }),
+          /Missing CURSOR_API_KEY/,
+        );
       } finally {
         removeTempDir(root);
       }
