@@ -17,6 +17,7 @@ import {
   formatStatusTable,
   getAllStatus,
   runWorkerDebug,
+  summarizeVisibilityProbe,
 } from "./status.mjs";
 import { buildLaunchAgentPlist } from "./launchd.mjs";
 import { addWorkspace, listWorkspaces, removeWorkspace, runSetup } from "./setup.mjs";
@@ -101,16 +102,41 @@ function authCheck(config) {
   const report = runWorkerDebug(config, worker);
   const auth = report.auth ?? {};
   const identity = report.identity ?? {};
-  const visibility = report.visibilityProbe ?? {};
+  const visibility = summarizeVisibilityProbe(report.visibilityProbe);
 
   console.log("\nAuth check");
   console.log("=".repeat(40));
   console.log(`API key in env file: ${hasApiKey() ? "yes" : "no"}`);
   console.log(`Auth method:         ${auth.method ?? "unknown"}`);
   console.log(`Identity:            ${identity.status === "ok" ? identity.email ?? "ok" : identity.status ?? "unknown"}`);
-  console.log(`Worker visible:      ${visibility.status ?? "unknown"}`);
+  console.log(
+    `Worker visible:      ${visibility.status}${visibility.totalCount !== undefined ? ` (${visibility.totalCount} connected)` : ""}`,
+  );
+
+  let failed = false;
+
+  if (!hasApiKey()) {
+    console.log("\nFix: run cursor-workers setup and add your API key.");
+    failed = true;
+  } else if (!auth.usedApiKeyFromEnv && auth.method !== "api_key") {
+    console.log("\nFix: auth used browser login, not your env API key. Re-run cursor-workers setup.");
+    failed = true;
+  }
+
+  if (identity.status !== "ok") {
+    console.log("\nFix: confirm your API key at cursor.com/dashboard → Integrations");
+    failed = true;
+  }
+
   if (visibility.status !== "ok") {
-    console.log("\nFix: run cursor-workers setup and confirm your API key at cursor.com/dashboard → Integrations");
+    console.log("\nFix: confirm your API key and network access to api2.cursor.sh");
+    failed = true;
+  } else if (visibility.totalCount === 0) {
+    console.log("\nNote: API key works, but no workers are connected yet.");
+    console.log("Run: cursor-workers start   (or cursor-workers install for auto-start)");
+  }
+
+  if (failed) {
     process.exit(1);
   }
 }

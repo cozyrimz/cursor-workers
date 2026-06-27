@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { spawnSync } from "node:child_process";
+import { applyApiKeyEnv, resolveApiKey } from "./config.mjs";
 import { isRunning, logPath, readPid } from "./worker-process.mjs";
 
 async function fetchMetrics(port) {
@@ -70,10 +71,18 @@ export async function getAllStatus(config) {
     statuses.push(await getWorkerStatus(config, worker));
   }
 
-  const apiKey = process.env[config.apiKeyEnv];
+  const apiKey = process.env[config.apiKeyEnv] ?? resolveApiKey(config);
   const fleet = apiKey ? await fetchFleetSummary(apiKey) : null;
 
   return { workers: statuses, fleet };
+}
+
+export function summarizeVisibilityProbe(visibilityProbe = {}) {
+  const probe = visibilityProbe.nonPrivacy ?? visibilityProbe.privacy ?? visibilityProbe;
+  return {
+    status: probe.status ?? visibilityProbe.status ?? "unknown",
+    totalCount: probe.totalCount ?? visibilityProbe.totalCount ?? 0,
+  };
 }
 
 export function runWorkerDebug(config, worker) {
@@ -86,9 +95,7 @@ export function runWorkerDebug(config, worker) {
   if (worker.name) args.push("--name", worker.name);
   args.push("debug", "--json");
 
-  const env = { ...process.env };
-  const apiKey = env[worker.apiKeyEnv];
-  if (apiKey) env.CURSOR_API_KEY = apiKey;
+  const env = applyApiKeyEnv(config);
 
   const result = spawnSync(config.agentBin, args, {
     cwd: worker.workerDir,

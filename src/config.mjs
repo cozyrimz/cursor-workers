@@ -55,11 +55,12 @@ function normalizeWorkspace(entry, index, defaults) {
       workerDirs: [],
       pool: defaults.pool ?? false,
       poolName: defaults.poolName ?? "default",
-      managementPort: (defaults.managementPortBase ?? 18080) + index,
+      managementPort: undefined,
       idleReleaseTimeout: defaults.idleReleaseTimeout ?? 0,
       labels: {},
       verbose: false,
       enabled: true,
+      hasExplicitPort: false,
     };
   }
 
@@ -77,12 +78,38 @@ function normalizeWorkspace(entry, index, defaults) {
     workerDirs: paths.length > 1 ? paths : [],
     pool: entry.pool ?? defaults.pool ?? false,
     poolName: entry.poolName ?? defaults.poolName ?? "default",
-    managementPort: entry.managementPort ?? (defaults.managementPortBase ?? 18080) + index,
+    managementPort: entry.managementPort,
     idleReleaseTimeout: entry.idleReleaseTimeout ?? defaults.idleReleaseTimeout ?? 0,
     labels: entry.labels ?? {},
     verbose: Boolean(entry.verbose),
     enabled: entry.enabled !== false,
+    hasExplicitPort: entry.managementPort !== undefined,
   };
+}
+
+export function assignManagementPorts(workers, defaults = {}) {
+  const base = defaults.managementPortBase ?? 18080;
+  const used = new Set();
+
+  workers.forEach((worker, index) => {
+    let port = worker.hasExplicitPort ? worker.managementPort : base + index;
+
+    if (worker.hasExplicitPort && used.has(port)) {
+      throw new Error(
+        `Duplicate managementPort ${port} for workspace "${worker.id}".`,
+      );
+    }
+
+    while (used.has(port)) {
+      port += 1;
+    }
+
+    worker.managementPort = port;
+    used.add(port);
+    delete worker.hasExplicitPort;
+  });
+
+  return workers;
 }
 
 export function normalizeConfig(raw) {
@@ -98,6 +125,8 @@ export function normalizeConfig(raw) {
   const workers = raw.workspaces
     .map((entry, index) => normalizeWorkspace(entry, index, defaults))
     .filter((worker) => worker.enabled);
+
+  assignManagementPorts(workers, defaults);
 
   return {
     agentBin,
@@ -174,8 +203,20 @@ export function loadEnvFile(envPath = ENV_PATH) {
 }
 
 export function hasApiKey(envPath = ENV_PATH) {
-  const fromFile = loadEnvFile(envPath).CURSOR_API_KEY;
-  return Boolean(fromFile || process.env.CURSOR_API_KEY);
+  return Boolean(resolveApiKey({ apiKeyEnv: "CURSOR_API_KEY" }, process.env, envPath));
+}
+
+export function resolveApiKey(config = { apiKeyEnv: "CURSOR_API_KEY" }, env = process.env, envPath = ENV_PATH) {
+  const keyName = config.apiKeyEnv ?? "CURSOR_API_KEY";
+  return env[keyName] ?? loadEnvFile(envPath)[keyName] ?? null;
+}
+
+export function applyApiKeyEnv(config, env = { ...process.env }, envPath = ENV_PATH) {
+  const apiKey = resolveApiKey(config, env, envPath);
+  if (apiKey) {
+    env.CURSOR_API_KEY = apiKey;
+  }
+  return env;
 }
 
 export function writeEnvFile(apiKey, envPath = ENV_PATH) {

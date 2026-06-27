@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { applyApiKeyEnv } from "./config.mjs";
 
 export function pidPath(stateDir, workerId) {
   return path.join(stateDir, `${workerId}.pid`);
@@ -69,12 +70,7 @@ export function buildWorkerArgs(config, worker) {
 export function startWorker(config, worker, { detach = false } = {}) {
   const args = buildWorkerArgs(config, worker);
   const out = fs.openSync(logPath(config.logDir, worker.id), "a");
-  const env = { ...process.env };
-
-  const apiKey = env[worker.apiKeyEnv];
-  if (apiKey) {
-    env.CURSOR_API_KEY = apiKey;
-  }
+  const env = applyApiKeyEnv(config);
 
   const child = spawn(config.agentBin, args, {
     cwd: worker.workerDir,

@@ -5,12 +5,14 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import {
   expandHome,
+  assignManagementPorts,
   hasApiKey,
   loadConfig,
   loadEnvFile,
   normalizeConfig,
   readPinnedNode,
   readRawConfig,
+  resolveApiKey,
   resolveCliPath,
   slugify,
   writeConfig,
@@ -67,14 +69,53 @@ describe("config.mjs", () => {
     it("assigns incremental management ports", () => {
       const config = normalizeConfig({
         defaults: { managementPortBase: 19000 },
-        workspaces: [
-          { path: "/tmp/a" },
-          { path: "/tmp/b", managementPort: 19999 },
-        ],
+        workspaces: [{ path: "/tmp/a" }, { path: "/tmp/b", managementPort: 19999 }],
       });
 
       assert.equal(config.workers[0].managementPort, 19000);
       assert.equal(config.workers[1].managementPort, 19999);
+    });
+
+    it("skips ports already taken by explicit assignments", () => {
+      const config = normalizeConfig({
+        defaults: { managementPortBase: 18080 },
+        workspaces: [
+          { path: "/tmp/a", managementPort: 18081 },
+          { path: "/tmp/b" },
+        ],
+      });
+
+      assert.equal(config.workers[0].managementPort, 18081);
+      assert.equal(config.workers[1].managementPort, 18082);
+    });
+
+    it("rejects duplicate explicit management ports", () => {
+      assert.throws(
+        () =>
+          normalizeConfig({
+            workspaces: [
+              { path: "/tmp/a", managementPort: 18081 },
+              { path: "/tmp/b", managementPort: 18081 },
+            ],
+          }),
+        /Duplicate managementPort 18081/,
+      );
+    });
+
+    it("assignManagementPorts fills gaps after explicit ports", () => {
+      const workers = assignManagementPorts(
+        [
+          { id: "a", managementPort: 18081, hasExplicitPort: true },
+          { id: "b", hasExplicitPort: false },
+          { id: "c", hasExplicitPort: false },
+        ],
+        { managementPortBase: 18080 },
+      );
+
+      assert.equal(workers[0].managementPort, 18081);
+      assert.equal(workers[1].managementPort, 18082);
+      assert.equal(workers[2].managementPort, 18083);
+      assert.equal(workers[0].hasExplicitPort, undefined);
     });
 
     it("handles multi-repo paths", () => {
@@ -213,6 +254,7 @@ describe("config.mjs", () => {
         writeEnvFile("secret-key", envPath);
 
         assert.equal(hasApiKey(envPath), true);
+        assert.equal(resolveApiKey({ apiKeyEnv: "CURSOR_API_KEY" }, {}, envPath), "secret-key");
         assert.match(fs.readFileSync(envPath, "utf8"), /CURSOR_API_KEY=secret-key/);
       } finally {
         removeTempDir(root);

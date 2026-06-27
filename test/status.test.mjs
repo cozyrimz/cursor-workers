@@ -4,6 +4,7 @@ import {
   formatStatusJson,
   formatStatusTable,
   parsePrometheus,
+  summarizeVisibilityProbe,
 } from "../src/status.mjs";
 
 describe("status.mjs", () => {
@@ -25,6 +26,24 @@ cursor_self_hosted_worker_last_activity_unix_seconds 1710000000.0
 
     it("returns empty object for blank input", () => {
       assert.deepEqual(parsePrometheus(""), {});
+    });
+  });
+
+  describe("summarizeVisibilityProbe", () => {
+    it("reads nested nonPrivacy probe fields", () => {
+      assert.deepEqual(
+        summarizeVisibilityProbe({
+          nonPrivacy: { status: "ok", totalCount: 2 },
+        }),
+        { status: "ok", totalCount: 2 },
+      );
+    });
+
+    it("falls back to flat probe shape", () => {
+      assert.deepEqual(summarizeVisibilityProbe({ status: "error", totalCount: 0 }), {
+        status: "error",
+        totalCount: 0,
+      });
     });
   });
 
