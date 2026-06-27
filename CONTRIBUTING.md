@@ -11,22 +11,24 @@ Thanks for helping improve cursor-workers. This is a small Node.js CLI with no b
 
 ## Development setup
 
+After cloning, run once per clone:
+
 ```bash
 git clone https://github.com/cozyrimz/cursor-workers.git
 cd cursor-workers
-./install.sh                 # pins Node 20+, installs ~/.local/bin wrapper
-cursor-workers setup         # local config + API key (optional for code-only changes)
+./scripts/setup-dev.sh           # git hooks + npm test
 ```
 
-Use `./install.sh` for development — it rsyncs to `~/.local/share/cursor-workers/app` and installs the CLI wrapper. Avoid `npm link` (it ties the command to whichever Node version is active).
-
-Enable git hooks (commit message check + tests before push):
+For dogfooding (CLI wrapper, launchd, workers on your Mac):
 
 ```bash
-./scripts/setup-git-hooks.sh
+./scripts/setup-dev.sh --with-cli
+cursor-workers setup             # API key + workspace paths
 ```
 
-See [docs/git-hooks.md](docs/git-hooks.md).
+`setup-dev.sh` enables git hooks (commit message check, tests before push) and verifies the test suite passes. See [docs/git-hooks.md](docs/git-hooks.md).
+
+Use `./install.sh` directly only if you need to reinstall the CLI without re-running hooks/tests.
 
 ## Project layout
 
@@ -66,7 +68,7 @@ npm test
 
 See [docs/tests.md](docs/tests.md) for coverage details, patterns, and how to add tests.
 
-CI runs the same suite on every push and pull request. Local clones should enable git hooks (`./scripts/setup-git-hooks.sh`) so `pre-push` runs tests before code leaves your machine.
+CI runs the same suite on every push and pull request. Run `./scripts/setup-dev.sh` once after clone so local git hooks match CI.
 
 PRs with failing tests will not be merged.
 

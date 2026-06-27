@@ -1,10 +1,12 @@
 # Git hooks
 
-Project hooks live in `.githooks/` and are enabled per clone:
+Project hooks live in `.githooks/`. Enable them once per clone:
 
 ```bash
-./scripts/setup-git-hooks.sh
+./scripts/setup-dev.sh
 ```
+
+This installs hooks and runs `npm test`. Use `./scripts/setup-git-hooks.sh` only if you need hooks without the full dev check.
 
 ## Hooks
 
@@ -30,4 +32,4 @@ Do not use routinely; CI will still fail on bad code.
 ## Requirements
 
 - Node.js 20+ on PATH when pushing
-- Run `./scripts/setup-git-hooks.sh` once after clone
+- Run `./scripts/setup-dev.sh` once after clone

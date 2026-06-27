@@ -64,7 +64,7 @@ GitHub Actions runs `npm test` on every push to `main` and on pull requests (`.g
 Optional but recommended locally:
 
 ```bash
-./scripts/setup-git-hooks.sh
+./scripts/setup-dev.sh
 ```
 
 - **commit-msg** — validates commit subject line
