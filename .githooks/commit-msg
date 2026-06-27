@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Validate commit message subject line.
+set -euo pipefail
+
+commit_msg_file="$1"
+subject="$(head -n1 "$commit_msg_file")"
+length=${#subject}
+
+if [[ -z "${subject// /}" ]]; then
+  echo "commit-msg hook: empty commit message" >&2
+  exit 1
+fi
+
+if (( length < 10 )); then
+  echo "commit-msg hook: subject too short (min 10 chars)" >&2
+  echo "  got: $subject" >&2
+  exit 1
+fi
+
+if (( length > 100 )); then
+  echo "commit-msg hook: subject too long (max 100 chars)" >&2
+  exit 1
+fi
+
+if [[ "$subject" =~ ^(wip|WIP|fix|update|changes|stuff|test|tmp|asdf)$ ]]; then
+  echo "commit-msg hook: subject is too vague; describe what changed" >&2
+  echo "  got: $subject" >&2
+  exit 1
+fi
+
+# Match repo style: sentence-style summary (starts with capital letter or verb).
+if [[ ! "$subject" =~ ^[A-Z] ]]; then
+  echo "commit-msg hook: subject should start with a capital letter" >&2
+  echo "  example: Add workspace validation tests" >&2
+  exit 1
+fi

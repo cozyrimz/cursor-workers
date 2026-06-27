@@ -5,19 +5,19 @@ import { isRunning, readPid, startWorker, stopWorker } from "./worker-process.mj
 
 const RESTART_DELAY_MS = 5000;
 
-export function readSupervisorPid() {
-  if (!fs.existsSync(SUPERVISOR_PID_PATH)) return null;
-  const value = Number.parseInt(fs.readFileSync(SUPERVISOR_PID_PATH, "utf8").trim(), 10);
+export function readSupervisorPid(pidPath = SUPERVISOR_PID_PATH) {
+  if (!fs.existsSync(pidPath)) return null;
+  const value = Number.parseInt(fs.readFileSync(pidPath, "utf8").trim(), 10);
   return Number.isFinite(value) ? value : null;
 }
 
-export function writeSupervisorPid(pid) {
-  fs.mkdirSync(path.dirname(SUPERVISOR_PID_PATH), { recursive: true });
-  fs.writeFileSync(SUPERVISOR_PID_PATH, String(pid));
+export function writeSupervisorPid(pid, pidPath = SUPERVISOR_PID_PATH) {
+  fs.mkdirSync(path.dirname(pidPath), { recursive: true });
+  fs.writeFileSync(pidPath, String(pid));
 }
 
-export function clearSupervisorPid() {
-  fs.rmSync(SUPERVISOR_PID_PATH, { force: true });
+export function clearSupervisorPid(pidPath = SUPERVISOR_PID_PATH) {
+  fs.rmSync(pidPath, { force: true });
 }
 
 const children = new Map();

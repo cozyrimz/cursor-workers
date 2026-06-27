@@ -10,6 +10,7 @@ Context for AI agents working in **cursor-workers** — an unofficial macOS tool
 | `config.json`, disk paths, auth, pool vs my-machines | [docs/config.md](docs/config.md) |
 | CLI commands | [docs/cli.md](docs/cli.md) |
 | Dev setup, conventions, PRs | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Unit tests (required for changes) | [docs/tests.md](docs/tests.md) |
 | User-facing quick start | [README.md](README.md) |
 
 ## What this repo does
@@ -43,8 +44,9 @@ launchd (Login) → cursor-workers supervise
 | File | Role |
 |------|------|
 | `bin/cursor-workers.mjs` | CLI entry (re-exports `src/cli.mjs`) |
-| `src/cli.mjs` | Command routing, launchd plist install/uninstall |
+| `src/cli.mjs` | Command routing, launchd install/uninstall |
 | `src/config.mjs` | Load/normalize `config.json`, env file helpers |
+| `src/launchd.mjs` | LaunchAgent plist generation |
 | `src/setup.mjs` | Interactive setup, `workspace add/list/remove` |
 | `src/supervisor.mjs` | KeepAlive loop, restart crashed workers |
 | `src/worker-process.mjs` | Spawn/stop `agent worker`, PID files |
@@ -64,4 +66,5 @@ launchd (Login) → cursor-workers supervise
 1. Read [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup
 2. Match existing patterns — plain Node ESM, minimal dependencies, no transpiler
 3. Keep user docs in `README.md` short; put detail in `docs/`
-4. Do not reintroduce legacy config formats or browser-login-as-daemon assumptions
+4. **Add or update unit tests for behavior changes; run `npm test`**
+5. Do not reintroduce legacy config formats or browser-login-as-daemon assumptions

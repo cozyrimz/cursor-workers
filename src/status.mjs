@@ -16,7 +16,7 @@ async function fetchMetrics(port) {
   }
 }
 
-function parsePrometheus(text) {
+export function parsePrometheus(text) {
   const metrics = {};
   for (const line of text.split("\n")) {
     if (!line || line.startsWith("#")) continue;

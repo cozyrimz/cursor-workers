@@ -71,6 +71,7 @@ rm -rf ~/.local/share/cursor-workers
 | [CLI reference](docs/cli.md) | All commands and flags |
 | [Architecture](docs/architecture.md) | How launchd, supervisor, and workers fit together |
 | [Contributing](CONTRIBUTING.md) | Development setup and PR guidelines |
+| [Tests](docs/tests.md) | Unit test suite (required for changes) |
 | [AGENTS.md](AGENTS.md) | Context for AI agents working in this repo |
 
 ## License

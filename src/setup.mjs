@@ -114,9 +114,9 @@ export async function runSetup({ nonInteractive = false } = {}) {
   }
 }
 
-export function addWorkspace(rawPath, { name } = {}) {
+export function addWorkspace(rawPath, { name, configPath = CONFIG_PATH } = {}) {
   const expanded = validatePath(rawPath);
-  const raw = readRawConfig();
+  const raw = readRawConfig(configPath);
   const workspaces = [...(raw.workspaces ?? [])];
   const id = slugify(expanded);
 
@@ -130,12 +130,12 @@ export function addWorkspace(rawPath, { name } = {}) {
     enabled: true,
   });
 
-  writeConfig({ ...raw, workspaces });
+  writeConfig({ ...raw, workspaces }, configPath);
   console.log(`Added workspace: ${expanded}`);
 }
 
-export function removeWorkspace(idOrPath) {
-  const raw = readRawConfig();
+export function removeWorkspace(idOrPath, { configPath = CONFIG_PATH } = {}) {
+  const raw = readRawConfig(configPath);
   const workspaces = raw.workspaces ?? [];
   const target = expandHome(idOrPath);
   const next = workspaces.filter((entry) => {
@@ -148,7 +148,7 @@ export function removeWorkspace(idOrPath) {
     throw new Error(`Workspace not found: ${idOrPath}`);
   }
 
-  writeConfig({ ...raw, workspaces: next });
+  writeConfig({ ...raw, workspaces: next }, configPath);
   console.log(`Removed workspace: ${idOrPath}`);
 }
 

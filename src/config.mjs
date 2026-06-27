@@ -18,16 +18,16 @@ export const LAUNCH_AGENT_PATH = path.join(
   `${LAUNCH_AGENT_LABEL}.plist`,
 );
 
-export function readPinnedNode() {
-  if (!fs.existsSync(NODE_PATH_FILE)) return null;
-  const nodeBin = fs.readFileSync(NODE_PATH_FILE, "utf8").trim();
+export function readPinnedNode(nodePathFile = NODE_PATH_FILE) {
+  if (!fs.existsSync(nodePathFile)) return null;
+  const nodeBin = fs.readFileSync(nodePathFile, "utf8").trim();
   if (!nodeBin || !fs.existsSync(nodeBin)) return null;
   return nodeBin;
 }
 
-export function resolveCliPath() {
-  if (fs.existsSync(WRAPPER_PATH)) return WRAPPER_PATH;
-  return path.join(INSTALL_DIR, "bin", "cursor-workers.mjs");
+export function resolveCliPath({ wrapperPath = WRAPPER_PATH, installDir = INSTALL_DIR } = {}) {
+  if (fs.existsSync(wrapperPath)) return wrapperPath;
+  return path.join(installDir, "bin", "cursor-workers.mjs");
 }
 
 export function expandHome(value) {
